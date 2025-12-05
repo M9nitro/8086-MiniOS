@@ -438,6 +438,7 @@ create_file:
     MUL BL
     LEA DI, file_storage
     ADD DI, AX
+    PUSH DI                     ; Save file storage position for history
     
     ; Read filename
     MOV CX, FILE_NAME_LEN - 1
@@ -446,8 +447,8 @@ create_file:
     ; Increment file count
     INC file_count
     
-    ; Add to history
-    LEA SI, file_name_prompt
+    ; Add filename to history (use the stored filename)
+    POP SI                      ; SI now points to the entered filename
     CALL add_to_history
     
     LEA DX, file_created
@@ -1232,44 +1233,33 @@ display_time ENDP
 
 ; Print two-digit number
 print_two_digits PROC
-    ; AL = number to print
+    ; AL = number to print (0-99)
     PUSH AX
+    PUSH BX
     PUSH DX
     
+    ; Save ones digit
     XOR AH, AH
-    MOV DL, 10
-    DIV DL              ; AL = tens, AH = ones
+    MOV BL, 10
+    DIV BL              ; AL = tens, AH = ones
     
-    ; Print tens
+    ; Save ones digit in BL
+    MOV BL, AH
+    
+    ; Print tens digit
     ADD AL, '0'
     MOV DL, AL
     MOV AH, 02h
-    PUSH DX
     INT 21h
     
-    ; Print ones
-    POP DX
-    MOV DL, DH          ; Get remainder (was in AH)
-    SUB DL, '0'         ; Convert back
-    ADD DL, '0'         ; This should be: use the original AH
-    
-    POP DX
-    POP AX
-    
-    ; Recalculate ones digit properly
-    PUSH AX
-    PUSH DX
-    
-    XOR AH, AH
-    MOV DL, 10
-    DIV DL
-    
-    MOV DL, AH
+    ; Print ones digit
+    MOV DL, BL
     ADD DL, '0'
     MOV AH, 02h
     INT 21h
     
     POP DX
+    POP BX
     POP AX
     RET
 print_two_digits ENDP
