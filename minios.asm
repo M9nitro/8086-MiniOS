@@ -139,7 +139,6 @@
     MAX_HISTORY     EQU 10
     HIST_CMD_LEN    EQU 30
     history_count   DB 0
-    history_index   DB 0
     history_storage DB 300 DUP(0)  ; 10 commands * 30 chars
     
     ; ==================== System Clock ====================
